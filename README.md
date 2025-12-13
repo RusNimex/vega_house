@@ -157,28 +157,49 @@ Authorization: Bearer {access_token}
 ```
 vega_house/
 ├── app/
+│   ├── Exceptions/
+│   │   └── Handler.php                # Обработчик исключений
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── AuthController.php    # Контроллер аутентификации
-│   │   │   └── Controller.php
+│   │   │   ├── Controller.php         # Базовый контроллер
+│   │   │   ├── V1/
+│   │   │   │   └── AuthController.php # Контроллер аутентификации v1
+│   │   │   └── V2/
+│   │   │       └── AuthController.php # Контроллер аутентификации v2
+│   │   ├── Kernel.php                 # HTTP Kernel
 │   │   └── Middleware/                # Middleware
 │   ├── Models/
 │   │   └── User.php                   # Модель пользователя
-│   └── Providers/                     # Service Providers
+│   └── Providers/
+│       ├── AppServiceProvider.php     # App Service Provider
+│       └── AuthServiceProvider.php    # Auth Service Provider
+├── bootstrap/
+│   ├── app.php                        # Конфигурация приложения
+│   └── cache/                         # Кэш bootstrap
 ├── config/
+│   ├── app.php                        # Конфигурация приложения
 │   ├── auth.php                       # Конфигурация аутентификации
 │   ├── cors.php                       # CORS настройки
 │   ├── database.php                   # Конфигурация БД
 │   └── sanctum.php                    # Конфигурация Sanctum
 ├── database/
-│   └── migrations/                    # Миграции БД
+│   ├── factories/                     # Фабрики для тестов
+│   ├── migrations/                    # Миграции БД
+│   └── seeders/                       # Сидеры БД
 ├── routes/
-│   ├── api.php                        # API маршруты
+│   ├── v1/
+│   │   └── api.php                    # API маршруты v1
+│   ├── v2/
+│   │   └── api.php                    # API маршруты v2
+│   ├── console.php                    # Консольные команды
 │   └── web.php                        # Web маршруты
+├── storage/                           # Хранилище файлов и логов
+├── tests/                             # Тесты
 ├── docker-compose.yml                 # Laravel Sail конфигурация
 ├── docker/
-│   └── mysql/
-│       └── data/                      # Данные MySQL (на хосте)
+│   ├── mysql/
+│   │   └── data/                      # Данные MySQL (на хосте)
+│   └── php/                           # PHP конфигурация
 └── .env                               # Переменные окружения
 ```
 
@@ -258,7 +279,7 @@ sail artisan make:migration create_your_table
 - **Redis** - Кэш и очереди (порт 6379)
 - **Mailpit** - Тестирование email (порт 8025 для веб-интерфейса)
 
-Данные MySQL хранятся на хосте в папке `docker/mysql/data/`.
+Данные MySQL хранятся на хосте в папке `docker/mysql/data/`. Дайте докеру полные права на эту папку.
 
 ### Остановка и очистка
 
