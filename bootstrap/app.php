@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
+            // Health check должен быть без middleware, иначе сессии первыми проверят базу
+            Route::get('/healthz', [\App\Http\Controllers\HealthController::class, 'check']);
+
             Route::middleware('api')->group(function () {
 
                 // Версия 1 API
