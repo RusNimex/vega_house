@@ -10,11 +10,56 @@ use Illuminate\Support\Facades\Redis;
  * Проверки жизнеспособности для балансировщика и оркестратора. 
  *
  * @todo подключить Prometheus метрики
+ * 
+ * @OA\Tag(
+ *     name="Health",
+ *     description="Эндпоинты для проверки состояния сервиса"
+ * )
  */
 class HealthController extends Controller
 {
     /**
      * Проверка доступности MySQL и Redis
+     *
+     * @OA\Get(
+     *     path="/healthz",
+     *     summary="Проверка состояния сервиса",
+     *     description="Проверяет доступность MySQL и Redis. Возвращает 503 если хотя бы один сервис недоступен.",
+     *     tags={"Health"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Все сервисы доступны",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="ok"),
+     *             @OA\Property(property="timestamp", type="string", format="date-time"),
+     *             @OA\Property(
+     *                 property="services",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="mysql",
+     *                     type="object",
+     *                     @OA\Property(property="status", type="string", example="ok"),
+     *                     @OA\Property(property="message", type="string", example="MySQL connection successful")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="redis",
+     *                     type="object",
+     *                     @OA\Property(property="status", type="string", example="ok"),
+     *                     @OA\Property(property="message", type="string", example="Redis connection successful")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=503,
+     *         description="Один или более сервисов недоступны",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="degraded"),
+     *             @OA\Property(property="timestamp", type="string", format="date-time"),
+     *             @OA\Property(property="services", type="object")
+     *         )
+     *     )
+     * )
      */
     public function check(): JsonResponse
     {
@@ -77,4 +122,3 @@ class HealthController extends Controller
         }
     }
 }
-
