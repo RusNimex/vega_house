@@ -1,5 +1,4 @@
 # For more information: https://laravel.com/docs/sail
-version: '3.8'
 
 services:
     app:
@@ -33,7 +32,6 @@ services:
             - '${FORWARD_DB_PORT:-3306}:3306'
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD:-root}'
-            MYSQL_ROOT_HOST: '%'
             MYSQL_DATABASE: '${DB_DATABASE:-vega_house}'
             MYSQL_USER: '${DB_USERNAME:-root}'
             MYSQL_PASSWORD: '${DB_PASSWORD:-root}'
@@ -43,7 +41,7 @@ services:
         networks:
             sail:
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD:-root}"]
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
             retries: 3
             timeout: 5s
 
