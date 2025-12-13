@@ -41,15 +41,13 @@ Alias для удобства (добавьте в `~/.bashrc` или `~/.zshrc`
 ```bash
 alias sail='./vendor/bin/sail'
 ```
-Либо через полный путь ./vendor/bin/sail <command>
+После этого можно использовать просто `sail up -d`. Либо через полный путь `./vendor/bin/sail <command>`
 
 Запустите Docker-окружение:
 
 ```bash
-./vendor/bin/sail up -d
+sail up -d
 ```
-
-После этого можно использовать просто `sail up -d`.
 
 ### 4. Генерация ключа приложения
 
@@ -79,6 +77,18 @@ http://localhost
 
 ```
 http://localhost:8000/api
+```
+
+## Xdebug
+
+Добавьте в .env файл:
+```
+XDEBUG_MODE=develop,debug
+XDEBUG_CONFIG=client_host=host.docker.internal start_with_request=yes
+```
+затем перезапустим
+```bash
+sail restart
 ```
 
 ### Аутентификация
@@ -181,7 +191,9 @@ vega_house/
 sail up -d
 
 # Остановка контейнеров
-sail down
+sail stop
+sail start
+sail restart
 
 # Просмотр логов
 sail logs
