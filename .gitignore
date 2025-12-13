@@ -5,6 +5,7 @@ yarn-error.log
 
 # Laravel
 bootstrap/compiled.php
+bootstrap/cache/*.php
 app/storage/
 public/storage
 public/hot
