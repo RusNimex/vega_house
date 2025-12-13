@@ -19,7 +19,7 @@ REST API для мобильного приложения - осмотр объ�
 
 ### 1. Клонирование и установка зависимостей
 
-Через временный контейне
+Через временный контейне. Запустит из текущей папки композер и наполнит vendor. Потом удалит контейнер.
 ```bash
 docker run --rm -v ${PWD}:/app -w /app composer:latest install
 ```
@@ -36,16 +36,17 @@ cp .env.example .env
 
 ### 3. Запуск Laravel Sail
 
+Alias для удобства (добавьте в `~/.bashrc` или `~/.zshrc`):
+
+```bash
+alias sail='./vendor/bin/sail'
+```
+Либо через полный путь ./vendor/bin/sail <command>
+
 Запустите Docker-окружение:
 
 ```bash
 ./vendor/bin/sail up -d
-```
-
-Или создайте alias для удобства (добавьте в `~/.bashrc` или `~/.zshrc`):
-
-```bash
-alias sail='./vendor/bin/sail'
 ```
 
 После этого можно использовать просто `sail up -d`.
@@ -53,13 +54,13 @@ alias sail='./vendor/bin/sail'
 ### 4. Генерация ключа приложения
 
 ```bash
-./vendor/bin/sail artisan key:generate
+sail artisan key:generate
 ```
 
 ### 5. Выполнение миграций
 
 ```bash
-./vendor/bin/sail artisan migrate
+sail artisan migrate
 ```
 
 ### 6. Доступ к приложению
@@ -177,64 +178,64 @@ vega_house/
 
 ```bash
 # Запуск контейнеров
-./vendor/bin/sail up -d
+sail up -d
 
 # Остановка контейнеров
-./vendor/bin/sail down
+sail down
 
 # Просмотр логов
-./vendor/bin/sail logs
-./vendor/bin/sail logs mysql
+sail logs
+sail logs mysql
 
 # Выполнение Artisan команд
-./vendor/bin/sail artisan migrate
-./vendor/bin/sail artisan key:generate
-./vendor/bin/sail artisan route:list
+sail artisan migrate
+sail artisan key:generate
+sail artisan route:list
 
 # Выполнение Composer команд
-./vendor/bin/sail composer install
-./vendor/bin/sail composer require package/name
+sail composer install
+sail composer require package/name
 
 # Выполнение NPM команд
-./vendor/bin/sail npm install
-./vendor/bin/sail npm run dev
+sail npm install
+sail npm run dev
 
 # Доступ к MySQL CLI
-./vendor/bin/sail mysql
+sail mysql
 
 # Доступ к Redis CLI
-./vendor/bin/sail redis-cli
+sail redis-cli
 
 # Выполнение PHP команд
-./vendor/bin/sail php --version
-./vendor/bin/sail php artisan tinker
+sail php --version
+sail php artisan tinker
 ```
 
 ### Тестирование
 
 ```bash
-./vendor/bin/sail artisan test
+sail artisan test
 ```
 
 ### Очистка кэша
 
 ```bash
-./vendor/bin/sail artisan cache:clear
-./vendor/bin/sail artisan config:clear
-./vendor/bin/sail artisan route:clear
-./vendor/bin/sail artisan view:clear
+sail artisan cache:clear
+sail artisan config:clear
+sail artisan route:clear
+sail artisan view:clear
 ```
 
 ### Создание нового контроллера
 
 ```bash
-./vendor/bin/sail artisan make:controller YourController
+sail artisan make:controller YourController
 ```
 
 ### Создание новой миграции
 
 ```bash
-./vendor/bin/sail artisan make:migration create_your_table
+sail artisan make:migration create_your_table
 ```
 
 ### Дополнительные сервисы
@@ -251,10 +252,10 @@ vega_house/
 
 ```bash
 # Остановка контейнеров
-./vendor/bin/sail down
+sail down
 
 # Остановка с удалением volumes (удалит данные БД!)
-./vendor/bin/sail down -v
+sail down -v
 ```
 
 ## Лицензия
