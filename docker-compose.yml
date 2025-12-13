@@ -1,7 +1,7 @@
 # For more information: https://laravel.com/docs/sail
 
 services:
-    app:
+    laravel.test:
         build:
             context: ./vendor/laravel/sail/runtimes/8.2
             dockerfile: Dockerfile
