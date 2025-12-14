@@ -77,7 +77,7 @@ POST /api/logout
 Authorization: Bearer {access_token}
 ```
 
-> **Примечание:** Информация о развертывании, установке и командах Sail находится в файле [deploy.md](deploy.md).
+> **Примечание:** Информация о развертывании, установке и командах Sail находится в файле [DEPLOY_local.md](DEPLOY_local.md).
 
 ## Лицензия
 
