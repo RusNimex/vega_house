@@ -48,28 +48,19 @@ class CompanySeeder extends Seeder
             );
         }
 
-        // Случайная связь пользователей с компаниями (только первые 10 для оптимизации)
-        $users = User::take(10)->get();
-        $companyIds = collect($createdCompanies)->pluck('id')->toArray();
-
-        foreach ($users as $user) {
-            // Случайное количество компаний для пользователя (от 0 до всех)
-            $randomCount = rand(0, count($companyIds));
+        // Связываем первого пользователя со всеми компаниями
+        $userEmail = env('ADMIN_USER_EMAIL', 'example@email.com');
+        $user = User::where('email', $userEmail)->first();
+        
+        if ($user) {
+            $companyIds = collect($createdCompanies)->pluck('id')->toArray();
             
-            if ($randomCount > 0) {
-                // Случайный выбор компаний
-                $randomCompanyIds = collect($companyIds)
-                    ->shuffle()
-                    ->take($randomCount)
-                    ->toArray();
-
-                // Связываем пользователя с компаниями (без удаления существующих связей)
-                $attachData = [];
-                foreach ($randomCompanyIds as $companyId) {
-                    $attachData[$companyId] = ['enabled' => (bool) rand(0, 1)];
-                }
-                $user->companies()->syncWithoutDetaching($attachData);
+            // Связываем пользователя со всеми компаниями со случайным значением enabled
+            $attachData = [];
+            foreach ($companyIds as $companyId) {
+                $attachData[$companyId] = ['enabled' => (bool) rand(0, 1)];
             }
+            $user->companies()->syncWithoutDetaching($attachData);
         }
     }
 }

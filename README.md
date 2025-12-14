@@ -147,6 +147,96 @@ Authorization: Bearer {access_token}
 
 **Примечание:** Возвращает все компании, связанные с текущим пользователем. В поле `pivot` содержится информация о связи между пользователем и компанией, включая флаг `enabled`.
 
+#### Получение опций юзера
+
+```http
+GET /api/v1/profile/options
+Authorization: Bearer {access_token}
+```
+
+**Ответ:**
+```json
+{
+    "options": [
+        {
+            "id": 1,
+            "key": "upload_if_wifi_online",
+            "name": "Загружать только при Wi-Fi",
+            "description": "Загружать данные только при подключении к Wi-Fi сети",
+            "value": true,
+            "created_at": "2024-01-01T00:00:00.000000Z",
+            "updated_at": "2024-01-01T00:00:00.000000Z"
+        },
+        {
+            "id": 2,
+            "key": "save_photo_in_phone",
+            "name": "Сохранять фото на телефоне",
+            "description": "Сохранять фотографии в галерею телефона",
+            "value": false,
+            "created_at": "2024-01-01T00:00:00.000000Z",
+            "updated_at": "2024-01-01T00:00:00.000000Z"
+        }
+    ]
+}
+```
+
+**Примечание:** Возвращает все опции из таблицы `options`. Для каждой опции указывается значение `value` (true/false), которое пользователь выбрал. Если пользователь не устанавливал значение для опции, возвращается `false` по умолчанию.
+
+#### Обновление опции юзера
+
+```http
+PUT /api/v1/profile/options
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+    "option_id": 1,
+    "value": 1
+}
+```
+
+Или можно использовать ключ опции:
+
+```http
+PUT /api/v1/profile/options
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+    "key": "upload_if_wifi_online",
+    "value": 0
+}
+```
+
+**Параметры:**
+- `option_id` (integer, required_without:key) - ID опции
+- `key` (string, required_without:option_id) - Ключ опции
+- `value` (boolean, required) - Значение опции (1 или 0, true или false)
+
+**Ответ:**
+```json
+{
+    "message": "Option updated successfully",
+    "option": {
+        "id": 1,
+        "key": "upload_if_wifi_online",
+        "name": "Загружать только при Wi-Fi",
+        "description": "Загружать данные только при подключении к Wi-Fi сети",
+        "created_at": "2024-01-01T00:00:00.000000Z",
+        "updated_at": "2024-01-01T00:00:00.000000Z",
+        "pivot": {
+            "user_id": 1,
+            "option_id": 1,
+            "value": 1,
+            "created_at": "2024-01-01T00:00:00.000000Z",
+            "updated_at": "2024-01-01T12:00:00.000000Z"
+        }
+    }
+}
+```
+
+**Примечание:** Можно указать либо `option_id`, либо `key` для идентификации опции. Если связь между юзером и опцией не существует, она будет создана. Если существует, значение будет обновлено.
+
 #### Выход
 
 ```http

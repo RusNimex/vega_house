@@ -56,5 +56,15 @@ class User extends Authenticatable
             ->withPivot('enabled')
             ->withTimestamps();
     }
+
+    /**
+     * Опции юзера
+     */
+    public function options(): BelongsToMany
+    {
+        return $this->belongsToMany(Option::class, 'user_options')
+            ->withPivot('value')
+            ->withTimestamps();
+    }
 }
 

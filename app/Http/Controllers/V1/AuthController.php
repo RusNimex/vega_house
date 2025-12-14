@@ -77,12 +77,5 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Получение информации о текущем пользователе
-     */
-    public function me(Request $request)
-    {
-        return response()->json($request->user());
-    }
 }
 
