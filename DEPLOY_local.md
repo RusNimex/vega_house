@@ -160,6 +160,11 @@ sail artisan migrate:fresh --seed
 ```bash
 sail artisan db:seed
 ```
+Можно наполнить тестовыми данные через консольную команду
+
+```bash
+sail artisan db:seed-test
+```
 
 ## Xdebug
 

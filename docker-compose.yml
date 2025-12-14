@@ -17,7 +17,7 @@ services:
             WWWUSER: '${WWWUSER:-1000}'
             LARAVEL_SAIL: 1
             XDEBUG_MODE: '${XDEBUG_MODE:-off}'
-            XDEBUG_CONFIG: '${XDEBUG_CONFIG:-client_host=host.docker.internal}'
+            XDEBUG_CONFIG: '${XDEBUG_CONFIG:-client_host=host.docker.internal client_port=9003}'
         volumes:
             - '.:/var/www/html'
         working_dir: /var/www/html
@@ -62,7 +62,7 @@ services:
     mailpit:
         image: 'axllent/mailpit'
         ports:
-            - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+            - '${FORWARD_MAILPIT_PORT:-10250}:1025'
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
         networks:
             sail:
