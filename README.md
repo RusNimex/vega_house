@@ -86,7 +86,7 @@ Authorization: Bearer {access_token}
 #### Обновление профиля пользователя
 
 ```http
-PUT /api/v1/user/update
+PUT /api/v1/profile/update
 Authorization: Bearer {access_token}
 Content-Type: application/json
 
@@ -115,6 +115,37 @@ Content-Type: application/json
     }
 }
 ```
+
+#### Получение компаний пользователя
+
+```http
+GET /api/v1/profile/company
+Authorization: Bearer {access_token}
+```
+
+**Ответ:**
+```json
+{
+    "companies": [
+        {
+            "id": 1,
+            "name": "ООО Ромашка и чай",
+            "city": "Москва",
+            "created_at": "2024-01-01T00:00:00.000000Z",
+            "updated_at": "2024-01-01T00:00:00.000000Z",
+            "pivot": {
+                "user_id": 1,
+                "company_id": 1,
+                "enabled": 1,
+                "created_at": "2024-01-01T00:00:00.000000Z",
+                "updated_at": "2024-01-01T00:00:00.000000Z"
+            }
+        }
+    ]
+}
+```
+
+**Примечание:** Возвращает все компании, связанные с текущим пользователем. В поле `pivot` содержится информация о связи между пользователем и компанией, включая флаг `enabled`.
 
 #### Выход
 
