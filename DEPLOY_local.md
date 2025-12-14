@@ -216,6 +216,16 @@ sail php artisan tinker
 
 ### Тестирование
 
+Создать базу 
+```bash
+sail mysql -u root -proot
+```
+затем
+```bash
+CREATE DATABASE IF NOT EXISTS testing CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+exit;
+```
+и запуск
 ```bash
 sail artisan test
 ```

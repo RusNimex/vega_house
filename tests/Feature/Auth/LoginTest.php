@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -18,6 +19,7 @@ class LoginTest extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'ivan@example.com',
+            'phone' => '+79083054488',
             'password' => Hash::make('password123'),
         ]);
 
@@ -33,6 +35,7 @@ class LoginTest extends TestCase
                 'user' => [
                     'id',
                     'name',
+                    'phone',
                     'email',
                     'created_at',
                     'updated_at',
@@ -185,7 +188,7 @@ class LoginTest extends TestCase
 
         // Проверяем, что токен работает
         $meResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/user');
+            ->getJson('/api/v1/profile');
 
         $meResponse->assertStatus(200)
             ->assertJson([
@@ -201,11 +204,13 @@ class LoginTest extends TestCase
     {
         $user1 = User::factory()->create([
             'email' => 'user1@example.com',
+            'phone' => '+79083054488',
             'password' => Hash::make('password123'),
         ]);
 
         $user2 = User::factory()->create([
             'email' => 'user2@example.com',
+            'phone' => '+79083054488',
             'password' => Hash::make('password123'),
         ]);
 
@@ -243,16 +248,24 @@ class LoginTest extends TestCase
         $this->assertNotEquals($token1, $token2);
 
         // Проверяем, что каждый токен работает только для своего юзера
-        // Сбрасываем перед запросом
-        $this->actingAs($user1);
-        $me1Response = $this->withHeader('Authorization', 'Bearer ' . $token1)
-            ->getJson('/api/v1/user');
-
-        $this->actingAs($user2);
-        $me2Response = $this->withHeader('Authorization', 'Bearer ' . $token2)
-            ->getJson('/api/v1/user');
+        $me1Response = $this->withHeaders([
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $token1,
+            ])
+            ->getJson('/api/v1/profile');
 
         $me1Response->assertStatus(200);
+
+        // Сбрасываем все guards перед вторым запросом, чтобы избежать сохранения состояния
+        Auth::forgetGuards();
+        
+        // Второй запрос с token2
+        $me2Response = $this->withHeaders([
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $token2,
+            ])
+            ->getJson('/api/v1/profile');
+
         $me2Response->assertStatus(200);
 
         $me1 = $me1Response->json();

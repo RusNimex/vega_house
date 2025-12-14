@@ -222,7 +222,7 @@ class RegisterTest extends TestCase
 
         // Проверяем, что токен работает для получения информации о пользователе
         $meResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/user');
+            ->getJson('/api/v1/profile');
 
         $meResponse->assertStatus(200)
             ->assertJson([
