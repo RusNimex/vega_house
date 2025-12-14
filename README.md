@@ -23,11 +23,12 @@ API использует Laravel Sanctum для аутентификации ч�
 #### Регистрация
 
 ```http
-POST /api/register
+POST /api/v1/register
 Content-Type: application/json
 
 {
     "name": "Иван Иванов",
+    "phone": "+79991234567",
     "email": "ivan@example.com",
     "password": "password123",
     "password_confirmation": "password123"
@@ -52,7 +53,7 @@ Content-Type: application/json
 #### Вход
 
 ```http
-POST /api/login
+POST /api/v1/login
 Content-Type: application/json
 
 {
@@ -66,14 +67,59 @@ Content-Type: application/json
 #### Получение информации о текущем пользователе
 
 ```http
-GET /api/user
+GET /api/v1/user
 Authorization: Bearer {access_token}
+```
+
+**Ответ:**
+```json
+{
+    "id": 1,
+    "name": "Иван Иванов",
+    "phone": "+79991234567",
+    "email": "ivan@example.com",
+    "created_at": "2024-01-01T00:00:00.000000Z",
+    "updated_at": "2024-01-01T00:00:00.000000Z"
+}
+```
+
+#### Обновление профиля пользователя
+
+```http
+PUT /api/v1/user/update
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+    "name": "Иван Петров",
+    "phone": "+79997654321",
+    "email": "ivan.new@example.com",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
+}
+```
+
+**Примечание:** Все поля опциональны. Можно обновлять только те поля, которые необходимо изменить. При обновлении пароля обязательно требуется поле `password_confirmation`, которое должно совпадать с `password`.
+
+**Ответ:**
+```json
+{
+    "message": "Profile updated successfully",
+    "user": {
+        "id": 1,
+        "name": "Иван Петров",
+        "phone": "+79997654321",
+        "email": "ivan.new@example.com",
+        "created_at": "2024-01-01T00:00:00.000000Z",
+        "updated_at": "2024-01-01T12:00:00.000000Z"
+    }
+}
 ```
 
 #### Выход
 
 ```http
-POST /api/logout
+POST /api/v1/logout
 Authorization: Bearer {access_token}
 ```
 
