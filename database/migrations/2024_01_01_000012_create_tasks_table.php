@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TaskStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -17,8 +18,8 @@ return new class extends Migration
             $table->foreignId('company_id')
                 ->constrained('companies')
                 ->onDelete('cascade');
-            $table->enum('status', ['process', 'new', 'break', 'decline', 'complete'])
-                ->default('new');
+            $table->enum('status', TaskStatus::toArray())
+                ->default(TaskStatus::NEW->value);
             $table->text('description');
             $table->dateTime('start');
             $table->dateTime('deadline');
