@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Contracts\Repositories\CompanyRepositoryInterface;
 use App\Enums\TaskStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -9,22 +10,13 @@ use Illuminate\Database\Eloquent\Collection;
 /**
  * Репозиторий для работы с компаниями
  * 
+ * Реализация CompanyRepositoryInterface.
  * Инкапсулирует логику запросов к базе для работы с компаниями.
  */
-class CompanyRepository
+class CompanyRepository implements CompanyRepositoryInterface
 {
     /**
-     * Получить компании с подсчетом задач по статусам
-     * 
-     * - Общее кол-во задач (tasks_count)
-     * - со статусом 'new' (tasks_new)
-     * - со статусом 'process' (tasks_process)
-     * - со статусом 'break' (tasks_break)
-     * - со статусом 'decline' (tasks_decline)
-     * - со статусом 'complete' (tasks_complete)
-     * 
-     * @param User $user Пользователь, чьи компании нужно получить
-     * @return Collection Коллекция моделей Company с загруженными счетчиками задач
+     * {@inheritDoc}
      */
     public function getUserCompaniesWithTaskCounts(User $user): Collection
     {
