@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\V1\AuthController;
+use App\Http\Controllers\V1\CompanyController;
 use App\Http\Controllers\V1\ProfileController;
+use App\Http\Controllers\V1\TaskController;
 use Illuminate\Support\Facades\Route;
 
 // Публичные
@@ -16,4 +18,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile/company', [ProfileController::class, 'companies']);
     Route::get('/profile/options', [ProfileController::class, 'options']);
     Route::put('/profile/options', [ProfileController::class, 'updateOption']);
+    Route::get('/company', [CompanyController::class, 'index']);
+    Route::get('/tasks', [TaskController::class, 'index']);
 });

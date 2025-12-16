@@ -1,0 +1,684 @@
+openapi: 3.0.3
+info:
+  title: Vega House API
+  description: REST API для мобильного приложения - осмотр объектов недвижимости и хранение данных по ним
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Локальный сервер разработки
+  - url: https://api.vega-house.com/api/v1
+    description: Продакшн сервер
+
+tags:
+  - name: Auth
+    description: Аутентификация и авторизация
+  - name: Profile
+    description: Управление профилем пользователя
+  - name: Companies
+    description: Работа с компаниями
+  - name: Tasks
+    description: Работа с задачами
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Laravel Sanctum токен
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Иван Иванов"
+        phone:
+          type: string
+          example: "+79991234567"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000000Z"
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        access_token:
+          type: string
+          example: "1|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        token_type:
+          type: string
+          example: "Bearer"
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - phone
+        - email
+        - password
+        - password_confirmation
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: "Иван Иванов"
+        phone:
+          type: string
+          maxLength: 255
+          example: "+79991234567"
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: "ivan@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "password123"
+        password_confirmation:
+          type: string
+          example: "password123"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+        password:
+          type: string
+          example: "password123"
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: "Иван Петров"
+        phone:
+          type: string
+          maxLength: 255
+          example: "+79997654321"
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: "ivan.new@example.com"
+        password:
+          type: string
+          minLength: 8
+          example: "newpassword123"
+        password_confirmation:
+          type: string
+          example: "newpassword123"
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Profile updated successfully"
+        user:
+          $ref: '#/components/schemas/User'
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "ООО Ромашка и чай"
+        city:
+          type: string
+          example: "Москва"
+        pivot:
+          type: object
+          properties:
+            user_id:
+              type: integer
+              example: 1
+            company_id:
+              type: integer
+              example: 1
+            enabled:
+              type: boolean
+              example: true
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    CompanyWithTasks:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "ООО Ромашка и чай"
+        city:
+          type: string
+          example: "Москва"
+        tasks:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 10
+            new:
+              type: integer
+              example: 3
+            process:
+              type: integer
+              example: 2
+            break:
+              type: integer
+              example: 1
+            decline:
+              type: integer
+              example: 1
+            complete:
+              type: integer
+              example: 3
+
+    CompaniesResponse:
+      type: object
+      properties:
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompanyWithTasks'
+
+    ProfileCompaniesResponse:
+      type: object
+      properties:
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+
+    Option:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        key:
+          type: string
+          example: "upload_if_wifi_online"
+        name:
+          type: string
+          example: "Загружать только при Wi-Fi"
+        description:
+          type: string
+          example: "Загружать данные только при подключении к Wi-Fi сети"
+        value:
+          type: boolean
+          example: true
+
+    OptionsResponse:
+      type: object
+      properties:
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/Option'
+
+    UpdateOptionRequest:
+      type: object
+      required:
+        - value
+      properties:
+        option_id:
+          type: integer
+          example: 1
+        key:
+          type: string
+          example: "upload_if_wifi_online"
+        value:
+          type: boolean
+          example: true
+
+    UpdateOptionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Option updated successfully"
+        option:
+          type: object
+          properties:
+            id:
+              type: integer
+            key:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            pivot:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                option_id:
+                  type: integer
+                value:
+                  type: boolean
+
+    TaskContact:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        task_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Иванов Иван Иванович"
+        phone:
+          type: string
+          nullable: true
+          example: "+79001234567"
+        email:
+          type: string
+          nullable: true
+          format: email
+          example: "ivanov@example.com"
+
+    TaskCompany:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "ООО Ромашка и чай"
+        city:
+          type: string
+          example: "Москва"
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        company_id:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: [new, process, break, decline, complete]
+          example: "new"
+        description:
+          type: string
+          example: "Осмотр офисного здания по адресу ул. Ленина, 10"
+        start:
+          type: string
+          format: date-time
+          example: "2024-01-15T09:00:00.000000Z"
+        deadline:
+          type: string
+          format: date-time
+          example: "2024-01-17T18:00:00.000000Z"
+        address:
+          type: string
+          example: "ул. Ленина, 10, Москва"
+        notes:
+          type: string
+          nullable: true
+          example: "Встреча с представителем компании в 9:00"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000000Z"
+        company:
+          $ref: '#/components/schemas/TaskCompany'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskContact'
+
+    CursorPagination:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        path:
+          type: string
+          example: "/api/v1/tasks"
+        per_page:
+          type: integer
+          example: 5
+        next_cursor:
+          type: string
+          nullable: true
+          example: "eyJpZCI6MTIzNDUsImNyZWF0ZWRfYXQiOiIyMDI0LTAxLTE1IDEwOjMwOjAwIn0"
+        next_page_url:
+          type: string
+          nullable: true
+          example: "/api/v1/tasks?cursor=eyJpZCI6MTIzNDUsImNyZWF0ZWRfYXQiOiIyMDI0LTAxLTE1IDEwOjMwOjAwIn0"
+        prev_cursor:
+          type: string
+          nullable: true
+        prev_page_url:
+          type: string
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "The given data was invalid."
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Failed to fetch tasks"
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Successfully logged out"
+
+paths:
+  /register:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация нового пользователя
+      description: Создает нового пользователя и возвращает токен доступа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      tags:
+        - Auth
+      summary: Авторизация пользователя
+      description: Авторизует пользователя и возвращает токен доступа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /logout:
+    post:
+      tags:
+        - Auth
+      summary: Выход пользователя
+      description: Удаляет текущий токен доступа пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Получение информации о текущем пользователе
+      description: Возвращает данные текущего аутентифицированного пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Не авторизован
+
+  /profile/update:
+    put:
+      tags:
+        - Profile
+      summary: Обновление профиля пользователя
+      description: Обновляет данные профиля пользователя. Все поля опциональны.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Профиль успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+
+  /profile/company:
+    get:
+      tags:
+        - Profile
+      summary: Получение компаний пользователя с отметкой вкл/выкл
+      description: Компании могут быть исключены из списка через выключатель
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список компаний пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCompaniesResponse'
+        '401':
+          description: Не авторизован
+
+  /profile/options:
+    get:
+      tags:
+        - Profile
+      summary: Получение опций пользователя
+      description: Возвращает все опции с их значениями для текущего пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список опций пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionsResponse'
+        '401':
+          description: Не авторизован
+
+    put:
+      tags:
+        - Profile
+      summary: Обновление опции пользователя
+      description: Обновляет значение опции для текущего пользователя. Можно указать option_id или key
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOptionRequest'
+      responses:
+        '200':
+          description: Опция успешно обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateOptionResponse'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+
+  /company:
+    get:
+      tags:
+        - Companies
+      summary: Получение компаний + статистика по задачам
+      description: Возвращает компании пользователя с подсчетом задач по статусам
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список компаний + статистика по задачам
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompaniesResponse'
+        '401':
+          description: Не авторизован
+
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Получение задач пользователя
+      description: |
+        Возвращает задачи всех компаний, к которым принадлежит пользователь.
+        Использует cursor pagination для вечного скролла.
+        Каждая задача включает информацию о компании и контактах.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: per_page
+          in: query
+          description: Количество элементов на странице (по умолчанию 5, максимум 100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 5
+            example: 5
+        - name: cursor
+          in: query
+          description: Курсор для навигации к следующей/предыдущей странице (из ответа предыдущего запроса)
+          required: false
+          schema:
+            type: string
+            example: "eyJpZCI6MTIzNDUsImNyZWF0ZWRfYXQiOiIyMDI0LTAxLTE1IDEwOjMwOjAwIn0"
+      responses:
+        '200':
+          description: Список задач с курсорной пагинацией
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CursorPagination'
+        '401':
+          description: Не авторизован
+        '422':
+          description: Ошибка валидации параметров
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+

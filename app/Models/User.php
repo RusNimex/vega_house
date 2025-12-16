@@ -53,8 +53,7 @@ class User extends Authenticatable
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_user')
-            ->withPivot('enabled')
-            ->withTimestamps();
+            ->withPivot('enabled');
     }
 
     /**
@@ -63,8 +62,7 @@ class User extends Authenticatable
     public function options(): BelongsToMany
     {
         return $this->belongsToMany(Option::class, 'user_options')
-            ->withPivot('value')
-            ->withTimestamps();
+            ->withPivot('value');
     }
 }
 
