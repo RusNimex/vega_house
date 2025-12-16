@@ -24,7 +24,7 @@ return new class extends Migration
             $table->dateTime('start');
             $table->dateTime('deadline');
             $table->string('address');
-            $table->string('notes');
+            $table->string('notes')->nullable();
             $table->timestamps();
             
             $table->index('company_id');
