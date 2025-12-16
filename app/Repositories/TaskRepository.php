@@ -20,7 +20,7 @@ class TaskRepository implements TaskRepositoryInterface
      */
     public function getUserTasksWithCursorPagination(User $user, int $perPage, ?string $cursor = null): CursorPaginator
     {
-        $companyIds = $user->companies()->get()->pluck('id')->toArray();
+        $companyIds = $user->activeCompanies()->get()->pluck('id')->toArray();
 
         // Если нет компаний
         if (empty($companyIds)) {

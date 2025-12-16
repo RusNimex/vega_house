@@ -73,6 +73,46 @@ class ProfileController extends Controller
     }
 
     /**
+     * Обновление состояния компании
+     *
+     * - Находим компанию по ID
+     * - Проверяем, что компания принадлежит пользователю
+     * - Обновляем поле enabled в pivot таблице
+     */
+    public function updateCompany(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'company_id' => 'required|integer|exists:companies,id',
+            'enabled' => 'required|boolean',
+        ]);
+
+        $companyId = $request->company_id;
+        $enabled = $request->enabled ? 1 : 0;
+
+        $company = $user->companies()->where('companies.id', $companyId)->first();
+        
+        if (!$company) {
+            return response()->json([
+                'message' => 'Company not found or does not belong to user',
+            ], 404);
+        }
+
+        // Обновляем поле enabled в pivot таблице
+        $user->companies()->syncWithoutDetaching([
+            $companyId => ['enabled' => $enabled]
+        ]);
+
+        $updatedCompany = $user->companies()->where('companies.id', $companyId)->first();
+
+        return response()->json([
+            'message' => 'Company status updated successfully',
+            'company' => $updatedCompany,
+        ]);
+    }
+
+    /**
      * Получение всех опций
      *
      * - Получаем все опции из таблицы options

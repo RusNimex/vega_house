@@ -48,7 +48,17 @@ class User extends Authenticatable
     }
 
     /**
-     * Компании, принадлежащие юзеру
+     * Активные компании
+     */
+    public function activeCompanies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->withPivot('enabled')
+            ->wherePivot('enabled', true);
+    }
+
+    /**
+     * Всек омпании и отключенные тоже. Это позволит их включить в настройках
      */
     public function companies(): BelongsToMany
     {
