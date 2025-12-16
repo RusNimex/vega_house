@@ -22,6 +22,7 @@ class CompanyRepository implements CompanyRepositoryInterface
     {
         return $user
             ->companies()
+            ->wherePivot('enabled', 1)
             ->withCount([
                 'tasks',
                 'tasks as tasks_new' => function ($query) {
