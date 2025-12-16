@@ -295,6 +295,28 @@ components:
                 value:
                   type: boolean
 
+    UpdateCompanyRequest:
+      type: object
+      required:
+        - company_id
+        - enabled
+      properties:
+        company_id:
+          type: integer
+          example: 1
+        enabled:
+          type: boolean
+          example: true
+
+    UpdateCompanyResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Company status updated successfully"
+        company:
+          $ref: '#/components/schemas/Company'
+
     TaskContact:
       type: object
       properties:
@@ -563,6 +585,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProfileCompaniesResponse'
+        '401':
+          description: Не авторизован
+
+    put:
+      tags:
+        - Profile
+      summary: Обновление состояния компании
+      description: Изменяет состояние enabled (вкл/выкл) для компании пользователя
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompanyRequest'
+      responses:
+        '200':
+          description: Состояние компании успешно обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCompanyResponse'
+        '404':
+          description: Компания не найдена или не принадлежит пользователю
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Не авторизован
 
