@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TaskStatus;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Task;
@@ -34,7 +35,7 @@ class TaskSeeder extends Seeder
             // ООО Ромашка и чай (Москва)
             [
                 'company_id' => $romashkaCompany->id,
-                'status' => 'new',
+                'status' => TaskStatus::NEW->value,
                 'description' => 'Осмотр офисного здания по адресу ул. Ленина, 10. Необходимо проверить состояние фасада, кровли и внутренних помещений.',
                 'start' => now()->addDays(1)->setTime(9, 0),
                 'deadline' => now()->addDays(3)->setTime(18, 0),
@@ -43,7 +44,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $romashkaCompany->id,
-                'status' => 'process',
+                'status' => TaskStatus::PROCESS->value,
                 'description' => 'Осмотр торгового зала. Проверка состояния торгового оборудования, систем освещения и безопасности.',
                 'start' => now()->subDays(1)->setTime(10, 0),
                 'deadline' => now()->addDays(2)->setTime(19, 0),
@@ -52,7 +53,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $romashkaCompany->id,
-                'status' => 'complete',
+                'status' => TaskStatus::COMPLETE->value,
                 'description' => 'Осмотр складского помещения. Проверка систем хранения и условий хранения товаров.',
                 'start' => now()->subDays(10)->setTime(8, 0),
                 'deadline' => now()->subDays(7)->setTime(17, 0),
@@ -72,7 +73,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $sberbananCompany->id,
-                'status' => 'process',
+                'status' => TaskStatus::PROCESS->value,
                 'description' => 'Осмотр административного здания. Проверка состояния офисных помещений и систем жизнеобеспечения.',
                 'start' => now()->subDays(3)->setTime(9, 0),
                 'deadline' => now()->addDays(1)->setTime(18, 0),
@@ -81,7 +82,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $sberbananCompany->id,
-                'status' => 'break',
+                'status' => TaskStatus::BREAK->value,
                 'description' => 'Осмотр складского комплекса. Проверка систем вентиляции, пожарной безопасности и состояния несущих конструкций.',
                 'start' => now()->subDays(5)->setTime(10, 0),
                 'deadline' => now()->addDays(3)->setTime(20, 0),
@@ -101,7 +102,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $vaibarisCompany->id,
-                'status' => 'complete',
+                'status' => TaskStatus::COMPLETE->value,
                 'description' => 'Осмотр офисного помещения. Проверка состояния кабинетов и переговорных комнат.',
                 'start' => now()->subDays(8)->setTime(11, 0),
                 'deadline' => now()->subDays(5)->setTime(16, 0),
@@ -110,7 +111,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $vaibarisCompany->id,
-                'status' => 'decline',
+                'status' => TaskStatus::DECLINE->value,
                 'description' => 'Осмотр производственного участка. Проверка оборудования и соответствия нормам безопасности.',
                 'start' => now()->subDays(12)->setTime(9, 0),
                 'deadline' => now()->subDays(9)->setTime(18, 0),
@@ -130,7 +131,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $royalCompany->id,
-                'status' => 'process',
+                'status' => TaskStatus::PROCESS->value,
                 'description' => 'Осмотр торгового павильона. Проверка состояния торгового оборудования и систем безопасности.',
                 'start' => now()->subDays(2)->setTime(8, 0),
                 'deadline' => now()->addDays(1)->setTime(17, 0),
@@ -139,7 +140,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $royalCompany->id,
-                'status' => 'complete',
+                'status' => TaskStatus::COMPLETE->value,
                 'description' => 'Осмотр складского помещения. Проверка условий хранения и систем безопасности.',
                 'start' => now()->subDays(15)->setTime(9, 0),
                 'deadline' => now()->subDays(12)->setTime(18, 0),
@@ -159,7 +160,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $mikuriozaCompany->id,
-                'status' => 'process',
+                'status' => TaskStatus::PROCESS->value,
                 'description' => 'Осмотр производственного цеха. Проверка оборудования и соответствия нормам безопасности.',
                 'start' => now()->subDays(4)->setTime(8, 0),
                 'deadline' => now()->addDays(2)->setTime(19, 0),
@@ -168,7 +169,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $mikuriozaCompany->id,
-                'status' => 'break',
+                'status' => TaskStatus::BREAK->value,
                 'description' => 'Осмотр офисного здания. Проверка состояния офисных помещений и систем жизнеобеспечения.',
                 'start' => now()->subDays(6)->setTime(9, 0),
                 'deadline' => now()->addDays(1)->setTime(18, 0),
@@ -188,7 +189,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $vkysnostiCompany->id,
-                'status' => 'process',
+                'status' => TaskStatus::PROCESS->value,
                 'description' => 'Осмотр производственного цеха. Проверка оборудования и условий производства.',
                 'start' => now()->subDays(5)->setTime(8, 0),
                 'deadline' => now()->addDays(3)->setTime(18, 0),
@@ -197,7 +198,7 @@ class TaskSeeder extends Seeder
             ],
             [
                 'company_id' => $vkysnostiCompany->id,
-                'status' => 'complete',
+                'status' => TaskStatus::COMPLETE->value,
                 'description' => 'Осмотр складского помещения. Проверка условий хранения продуктов и систем безопасности.',
                 'start' => now()->subDays(20)->setTime(9, 0),
                 'deadline' => now()->subDays(17)->setTime(17, 0),
