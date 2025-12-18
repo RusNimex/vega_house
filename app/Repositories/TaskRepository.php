@@ -3,24 +3,29 @@
 namespace App\Repositories;
 
 use App\Contracts\Repositories\TaskRepositoryInterface;
+use App\Enums\SubtaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 
 /**
  * Репозиторий для работы с задачами
- * 
- * Реализация TaskRepositoryInterface.
- * Инкапсулирует логику запросов к базе для работы с задачами.
  */
 class TaskRepository implements TaskRepositoryInterface
 {
     /**
      * {@inheritDoc}
      */
-    public function getUserTasksWithCursorPagination(User $user, int $perPage, ?string $cursor = null): CursorPaginator
+    public function getUserTasksWithCursorPagination(
+        User $user,
+        Carbon $date,
+        int $perPage,
+        ?string $cursor = null
+    ): CursorPaginator
     {
-        $companyIds = $user->activeCompanies()->get()->pluck('id')->toArray();
+        $companyIds = $this->getActiveCompanyIds($user);
 
         // Если нет компаний
         if (empty($companyIds)) {
@@ -33,8 +38,12 @@ class TaskRepository implements TaskRepositoryInterface
 
         // Получаем задачи компаний пользователя с курсорной пагинацией
         $query = Task::whereIn('company_id', $companyIds)
-            ->with(['company:id,name,city', 'contacts:id,task_id,name,phone,email'])
-            ->orderBy('created_at', 'desc')
+            ->where('start', '<=', $date)
+            ->whereIn('status', [
+                TaskStatus::NEW,
+                TaskStatus::PROCESS,
+            ])
+            ->orderBy('start', 'desc')
             ->orderBy('id', 'desc'); // Второй критерий для уникальности курсора
 
         // Применяем курсор, если он передан
@@ -43,6 +52,42 @@ class TaskRepository implements TaskRepositoryInterface
         }
 
         return $query->cursorPaginate($perPage);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @todo здесь два подзапроса, пока объем не большой не критично, если объем растет, то сделать через leftJoin
+     */
+    public function getUserTaskById(User $user, int $taskId): ?Task
+    {
+        $companyIds = $this->getActiveCompanyIds($user);
+
+        if (empty($companyIds)) {
+            return null;
+        }
+
+        return Task::whereIn('company_id', $companyIds)
+            ->where('id', $taskId)
+            ->with(['contacts'])
+            ->withCount([
+                'subtasks as count_new' => function ($query) {
+                    $query->where('status', SubtaskStatus::NEW->value);
+                },
+                'subtasks as count_completed' => function ($query) {
+                    $query->where('status', SubtaskStatus::COMPLETE->value);
+                }
+            ])
+            ->first();
+    }
+
+    /**
+     * Активные компании, чтоб случайно не выбрать чужие задачи
+     */
+    private function getActiveCompanyIds(User $user): array
+    {
+        return $user->activeCompanies()
+            ->pluck('companies.id')
+            ->toArray();
     }
 }
 

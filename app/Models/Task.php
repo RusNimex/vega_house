@@ -56,5 +56,21 @@ class Task extends Model
     {
         return $this->hasMany(Contact::class);
     }
+
+    /**
+     * Объекты задачи
+     */
+    public function objects(): HasMany
+    {
+        return $this->hasMany(TasksObject::class);
+    }
+
+    /**
+     * Подзадачи задачи
+     */
+    public function subtasks(): HasMany
+    {
+        return $this->hasMany(TasksSubtask::class);
+    }
 }
 
