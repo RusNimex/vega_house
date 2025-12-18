@@ -42,3 +42,4 @@ develop.log
 
 # Docker
 docker/mysql/data/
+/_ide_helper.php
