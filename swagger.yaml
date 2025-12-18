@@ -397,6 +397,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TaskContact'
+        count_new:
+          type: integer
+          description: Количество подзадач со статусом "new"
+          example: 5
+        count_completed:
+          type: integer
+          description: Количество подзадач со статусом "complete"
+          example: 3
 
     CursorPagination:
       type: object
@@ -728,6 +736,67 @@ paths:
         '401':
           description: Не авторизован
 
+  /schedule:
+    get:
+      tags:
+        - Tasks
+      summary: Расписание задач
+      description: |
+        Получение задач пользователя с фильтрацией по дате.
+        Возвращает задачи всех компаний, к которым принадлежит пользователь.
+        Фильтрует задачи по дате начала (start <= date) и статусам (new, process).
+        Использует cursor pagination для вечного скролла.
+        Каждая задача включает информацию о компании и контактах.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: per_page
+          in: query
+          description: Количество элементов на странице (по умолчанию 5, максимум 100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 5
+            example: 5
+        - name: cursor
+          in: query
+          description: Курсор для навигации к следующей/предыдущей странице (из ответа предыдущего запроса)
+          required: false
+          schema:
+            type: string
+            example: "eyJpZCI6MTIzNDUsImNyZWF0ZWRfYXQiOiIyMDI0LTAxLTE1IDEwOjMwOjAwIn0"
+        - name: date
+          in: query
+          description: Дата для фильтрации задач (по умолчанию текущая дата). Возвращаются задачи, у которых start <= date
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2024-01-15T00:00:00.000000Z"
+      responses:
+        '200':
+          description: Список задач с курсорной пагинацией
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CursorPagination'
+        '401':
+          description: Не авторизован
+        '422':
+          description: Ошибка валидации параметров
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /tasks:
     get:
       tags:
@@ -772,6 +841,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /task/{id}:
+    get:
+      tags:
+        - Tasks
+      summary: Обзор задачи
+      description: |
+        Получение детальной информации о задаче по ID.
+        Возвращает задачу с контактами и статистикой подзадач (количество новых и завершенных).
+        Доступны только задачи из активных компаний пользователя.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID задачи
+          schema:
+            type: integer
+            example: 250
+      responses:
+        '200':
+          description: Детальная информация о задаче
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Задача не найдена или нет доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
         '500':
           description: Внутренняя ошибка сервера
           content:
