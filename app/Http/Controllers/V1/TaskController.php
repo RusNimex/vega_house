@@ -16,37 +16,32 @@ class TaskController extends Controller
     }
 
     /**
-     * Все задачи юзера + курсорная пагинация
-     * 
-     * Задачи всех компаний, к которым принадлежит юзер.
-     * Каждая задача включает информацию о компании и контактах.
-     * 
-     * Поддерживает параметры запроса:
-     * - per_page: количество элементов на странице (по умолчанию 5, максимум 100)
-     * - cursor: курсор для навигации к следующей/предыдущей странице
-     * 
-     * @param Request $request
+     * Обзор задачи
+     *
+     * @param Request $request параметры запроса
+     * @param int $id задачи
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function task(Request $request, int $id): JsonResponse
     {
-        $request->validate([
-            'per_page' => 'sometimes|integer|min:1|max:100',
-            'cursor' => 'sometimes|string',
-        ]);
-
         $user = $request->user();
-        $perPage = $request->input('per_page', 5);
-        $cursor = $request->input('cursor');
 
         try {
-            $tasks = $this->taskRepository->getUserTasksWithCursorPagination($user, $perPage, $cursor);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch tasks', ['user_id' => $user->id, 'error' => $e]);
-            return response()->json(['error' => 'Failed to fetch tasks'], 500);
-        }
+            $task = $this->taskRepository->getUserTaskById($user, $id);
 
-        return response()->json($tasks);
+            if (!$task) {
+                return response()->json(['error' => 'Task not found'], 404);
+            }
+
+            return response()->json($task);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch task', [
+                'user_id' => $user->id,
+                'task_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'Failed to fetch task'], 500);
+        }
     }
 }
 
