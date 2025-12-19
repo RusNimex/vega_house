@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\Http\Requests\SchedulePayload;
+use App\Http\Resources\ScheduleResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
@@ -41,6 +42,9 @@ class ScheduleController extends Controller
             return response()->json(['error' => 'Failed to fetch tasks'], 500);
         }
 
-        return response()->json($tasks);
+        $contract = ScheduleResource::collection($tasks);
+
+        return $contract->response();
     }
 }
+

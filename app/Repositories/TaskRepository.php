@@ -56,7 +56,6 @@ class TaskRepository implements TaskRepositoryInterface
 
     /**
      * {@inheritDoc}
-     * @todo здесь два подзапроса, пока объем не большой не критично, если объем растет, то сделать через leftJoin
      */
     public function getUserTaskById(User $user, int $taskId): ?Task
     {
@@ -70,11 +69,9 @@ class TaskRepository implements TaskRepositoryInterface
             ->where('id', $taskId)
             ->with(['contacts'])
             ->withCount([
-                'subtasks as count_new' => function ($query) {
-                    $query->where('status', SubtaskStatus::NEW->value);
-                },
-                'subtasks as count_completed' => function ($query) {
-                    $query->where('status', SubtaskStatus::COMPLETE->value);
+                'objects as objects_amount',
+                'objects as objects_completed' => function ($query) {
+                    $query->where('completed', 1);
                 }
             ])
             ->first();

@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string $description дополнительно описание
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property bool $completed 1/0 - завершено/в работе
  * @property-read Task $task
  * @mixin Eloquent
  */
