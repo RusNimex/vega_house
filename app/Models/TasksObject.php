@@ -41,6 +41,7 @@ class TasksObject extends Model
         'task_id',
         'name',
         'description',
+        'completed',
     ];
 
     /**

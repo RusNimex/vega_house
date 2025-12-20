@@ -53,12 +53,12 @@ class ScheduleTest extends TestCase
                         'deadline',
                         'address',
                         'notes',
-                        'created_at',
-                        'updated_at',
                     ],
                 ],
-                'path',
-                'per_page',
+                'meta' => [
+                    'per_page',
+                ],
+                'links',
             ]);
 
         $this->assertCount(1, $response->json('data'));
@@ -128,7 +128,8 @@ class ScheduleTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data',
-                'per_page',
+                'meta' => ['per_page'],
+                'links',
             ]);
 
         $this->assertCount(0, $response->json('data'));
@@ -173,12 +174,17 @@ class ScheduleTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data',
-                'per_page',
-                'path',
+                'links',
+                'meta' => [
+                    'path',
+                    'per_page',
+                    'next_cursor',
+                    'prev_cursor',
+                ],
             ]);
 
         $this->assertCount(3, $response->json('data'));
-        $this->assertEquals(3, $response->json('per_page'));
+        $this->assertEquals(3, $response->json('meta.per_page'));
     }
 
     /**
