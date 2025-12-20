@@ -7,6 +7,7 @@ use App\Enums\TaskStatus;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Task;
+use App\Models\TasksObject;
 use App\Models\TasksSubtask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,24 +45,24 @@ class TaskTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'id',
-                'company_id',
-                'status',
-                'description',
-                'start',
-                'deadline',
-                'address',
-                'notes',
-                'created_at',
-                'updated_at',
-                'contacts',
-                'count_new',
-                'count_completed',
+                'data' => [
+                    'id',
+                    'company_id',
+                    'status',
+                    'description',
+                    'start',
+                    'deadline',
+                    'address',
+                    'notes',
+                    'contacts',
+                    'objects_amount',
+                    'objects_completed',
+                ]
             ]);
 
-        $this->assertEquals($task->id, $response->json('id'));
-        $this->assertCount(1, $response->json('contacts'));
-        $this->assertEquals($contact->id, $response->json('contacts.0.id'));
+        $this->assertEquals($task->id, $response->json('data.id'));
+        $this->assertCount(1, $response->json('data.contacts'));
+        $this->assertEquals($contact->id, $response->json('data.contacts.0.id'));
     }
 
     /**
@@ -153,7 +154,7 @@ class TaskTest extends TestCase
             ->getJson("/api/v1/task/{$task->id}");
 
         $response->assertStatus(200);
-        $contacts = $response->json('contacts');
+        $contacts = $response->json('data.contacts');
 
         $this->assertCount(2, $contacts);
         $this->assertEquals($contact1->id, $contacts[0]['id']);
@@ -178,22 +179,22 @@ class TaskTest extends TestCase
         ]);
 
         // Создаем подзадачи с разными статусами
-        TasksSubtask::create([
+        TasksObject::create([
             'task_id' => $task->id,
-            'target' => 'Подзадача 1',
-            'status' => SubtaskStatus::NEW->value,
+            'name' => 'Дом 1',
+            'completed' => 1,
         ]);
 
-        TasksSubtask::create([
+        TasksObject::create([
             'task_id' => $task->id,
-            'target' => 'Подзадача 2',
-            'status' => SubtaskStatus::NEW->value,
+            'name' => 'Дом 2',
+            'completed' => 0,
         ]);
 
-        TasksSubtask::create([
+        TasksObject::create([
             'task_id' => $task->id,
-            'target' => 'Подзадача 3',
-            'status' => SubtaskStatus::COMPLETE->value,
+            'name' => 'Дом 3',
+            'completed' => 0,
         ]);
 
         $token = $user->createToken('test-token')->plainTextToken;
@@ -203,8 +204,8 @@ class TaskTest extends TestCase
 
         $response->assertStatus(200);
 
-        $this->assertEquals(2, $response->json('count_new'));
-        $this->assertEquals(1, $response->json('count_completed'));
+        $this->assertEquals(3, $response->json('data.objects_amount'));
+        $this->assertEquals(1, $response->json('data.objects_completed'));
     }
 
     /**
@@ -231,8 +232,8 @@ class TaskTest extends TestCase
 
         $response->assertStatus(200);
 
-        $this->assertEquals(0, $response->json('count_new'));
-        $this->assertEquals(0, $response->json('count_completed'));
+        $this->assertEquals(0, $response->json('data.objects_amount'));
+        $this->assertEquals(0, $response->json('data.objects_completed'));
     }
 
     /**

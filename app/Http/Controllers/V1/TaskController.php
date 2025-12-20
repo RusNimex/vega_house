@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Contracts\Repositories\TaskRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TaskResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +34,7 @@ class TaskController extends Controller
                 return response()->json(['error' => 'Task not found'], 404);
             }
 
-            return response()->json($task);
+            return (new TaskResource($task))->response();
         } catch (\Exception $e) {
             Log::error('Failed to fetch task', [
                 'user_id' => $user->id,
