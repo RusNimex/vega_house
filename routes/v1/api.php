@@ -30,4 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/companies', [CompanyController::class, 'index']);
     Route::get('/schedule', [ScheduleController::class, 'index']);
     Route::get('/task/{id}', [TaskController::class, 'task']);
+    Route::put('/task/{id}', [TaskController::class, 'notes']);
 });

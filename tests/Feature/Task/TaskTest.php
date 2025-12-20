@@ -4,6 +4,7 @@ namespace Tests\Feature\Task;
 
 use App\Enums\SubtaskStatus;
 use App\Enums\TaskStatus;
+use App\Http\Requests\TaskPayload;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Task;
@@ -261,6 +262,61 @@ class TaskTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'Task not found']);
+    }
+
+    /**
+     * Тест: сохраняем заметку к задаче
+     */
+    public function test_save_user_notes_for_task(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $company = Company::factory()->create();
+        $user->companies()->attach($company->id, ['enabled' => true]);
+
+        $task = Task::factory()->create([
+            'company_id' => $company->id,
+        ]);
+
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson("/api/v1/task/{$task->id}", [
+                'notes' => 'test_save_user_notes_for_task test_save_user_notes_for_task'
+            ]);
+
+        $response->assertStatus(200);
+    }
+
+    /**
+     * Тест: кривой текст заметки
+     */
+    public function test_save_user_notes_fail_for_task(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'user@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $company = Company::factory()->create();
+        $user->companies()->attach($company->id, ['enabled' => true]);
+
+        $task = Task::factory()->create([
+            'company_id' => $company->id,
+        ]);
+
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson("/api/v1/task/{$task->id}", [
+                'notes' => '    '
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('notes');
     }
 }
 
