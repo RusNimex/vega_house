@@ -317,6 +317,17 @@ components:
         company:
           $ref: '#/components/schemas/Company'
 
+    UpdateTaskNotesRequest:
+      type: object
+      required:
+        - notes
+      properties:
+        notes:
+          type: string
+          maxLength: 255
+          description: Комментарий пользователя к задаче
+          example: "Встреча с представителем компании в 9:00. Принести документы."
+
     TaskContact:
       type: object
       properties:
@@ -880,6 +891,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Tasks
+      summary: Обновление комментария к задаче
+      description: |
+        Сохранение комментария пользователя к задаче.
+        Позволяет пользователю добавить или обновить свои заметки к задаче.
+        Доступны только задачи из активных компаний пользователя.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID задачи
+          schema:
+            type: integer
+            example: 250
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskNotesRequest'
+      responses:
+        '200':
+          description: Комментарий успешно сохранен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Задача не найдена или нет доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Не авторизован
         '500':
