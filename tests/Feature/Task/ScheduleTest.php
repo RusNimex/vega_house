@@ -3,43 +3,30 @@
 namespace Tests\Feature\Task;
 
 use App\Enums\TaskStatus;
-use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Task;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class ScheduleTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, TaskTestHelpers;
 
     /**
      * Тест успешного получения задач
      */
     public function test_user_can_get_their_tasks(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
+        $task = $this->createTaskForCompany($company, [
             'status' => TaskStatus::NEW->value,
             'start' => now()->subDay(), // Дата в прошлом, чтобы прошла фильтрацию
         ]);
 
         Contact::factory()->create(['task_id' => $task->id]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/schedule');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -70,37 +57,19 @@ class ScheduleTest extends TestCase
      */
     public function test_user_only_gets_tasks_from_their_companies(): void
     {
-        $user1 = User::factory()->create([
-            'email' => 'user1@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user1, 'company' => $company1] = $this->createUserWithCompany(['email' => 'user1@example.com']);
+        ['user' => $user2, 'company' => $company2] = $this->createUserWithCompany(['email' => 'user2@example.com']);
 
-        $user2 = User::factory()->create([
-            'email' => 'user2@example.com',
-            'password' => Hash::make('password123'),
-        ]);
-
-        $company1 = Company::factory()->create();
-        $company2 = Company::factory()->create();
-
-        $user1->companies()->attach($company1->id, ['enabled' => true]);
-        $user2->companies()->attach($company2->id, ['enabled' => true]);
-
-        $task1 = Task::factory()->create([
-            'company_id' => $company1->id,
+        $task1 = $this->createTaskForCompany($company1, [
             'status' => TaskStatus::NEW->value,
             'start' => now()->subDay(),
         ]);
-        $task2 = Task::factory()->create([
-            'company_id' => $company2->id,
+        $task2 = $this->createTaskForCompany($company2, [
             'status' => TaskStatus::NEW->value,
             'start' => now()->subDay(),
         ]);
 
-        $token = $user1->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule');
+        $response = $this->authenticatedJson($user1, 'GET', '/api/v1/schedule');
 
         $response->assertStatus(200);
         $tasks = $response->json('data');
@@ -115,15 +84,9 @@ class ScheduleTest extends TestCase
      */
     public function test_user_without_companies_gets_empty_list(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/schedule');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -150,13 +113,7 @@ class ScheduleTest extends TestCase
      */
     public function test_tasks_pagination_works(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
-
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
         // Создаем 10 задач
         Task::factory()->count(10)->create([
@@ -165,11 +122,8 @@ class ScheduleTest extends TestCase
             'start' => now()->subDay(),
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
         // Запрашиваем с per_page=3
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule?per_page=3');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/schedule?per_page=3');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -192,15 +146,9 @@ class ScheduleTest extends TestCase
      */
     public function test_per_page_maximum_is_100(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule?per_page=150');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/schedule?per_page=150');
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
@@ -211,15 +159,9 @@ class ScheduleTest extends TestCase
      */
     public function test_per_page_minimum_is_1(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule?per_page=0');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/schedule?per_page=0');
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['per_page']);
@@ -230,39 +172,27 @@ class ScheduleTest extends TestCase
      */
     public function test_tasks_are_sorted_by_created_at_desc(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task1 = Task::factory()->create([
-            'company_id' => $company->id,
+        $task1 = $this->createTaskForCompany($company, [
             'status' => TaskStatus::NEW->value,
             'start' => now()->subDays(2),
             'created_at' => now()->subDays(2),
         ]);
 
-        $task2 = Task::factory()->create([
-            'company_id' => $company->id,
+        $task2 = $this->createTaskForCompany($company, [
             'status' => TaskStatus::NEW->value,
             'start' => now()->subDays(1),
             'created_at' => now()->subDays(1),
         ]);
 
-        $task3 = Task::factory()->create([
-            'company_id' => $company->id,
+        $task3 = $this->createTaskForCompany($company, [
             'status' => TaskStatus::NEW->value,
             'start' => now(),
             'created_at' => now(),
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/schedule');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/schedule');
 
         $response->assertStatus(200);
         $tasks = $response->json('data');
