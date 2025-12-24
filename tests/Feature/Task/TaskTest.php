@@ -59,7 +59,7 @@ class TaskTest extends TestCase
         $response = $this->authenticatedJson($user, 'GET', '/api/v1/task/99999');
 
         $response->assertStatus(404)
-            ->assertJson(['error' => 'Task not found']);
+            ->assertJson(['error' => 'Resource not found']);
     }
 
     /**
@@ -75,7 +75,7 @@ class TaskTest extends TestCase
         $response = $this->authenticatedJson($user1, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(404)
-            ->assertJson(['error' => 'Task not found']);
+            ->assertJson(['error' => 'Resource not found']);
     }
 
     /**
@@ -178,7 +178,7 @@ class TaskTest extends TestCase
         $response = $this->authenticatedJson($user, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(404)
-            ->assertJson(['error' => 'Task not found']);
+            ->assertJson(['error' => 'Resource not found']);
     }
 
     /**

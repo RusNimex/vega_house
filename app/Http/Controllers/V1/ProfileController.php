@@ -64,7 +64,7 @@ class ProfileController extends Controller
     public function companies(Request $request)
     {
         $user = $request->user();
-        
+
         $companies = $user->companies()->get();
 
         return response()->json([
@@ -92,7 +92,7 @@ class ProfileController extends Controller
         $enabled = $request->enabled ? 1 : 0;
 
         $company = $user->companies()->where('companies.id', $companyId)->first();
-        
+
         if (!$company) {
             return response()->json([
                 'message' => 'Company not found or does not belong to user',
@@ -122,20 +122,19 @@ class ProfileController extends Controller
     public function options(Request $request)
     {
         $user = $request->user();
-        
         $allOptions = Option::all();
-        
+
         $userOptions = $user->options()->get()->keyBy('id');
-        
+
         $options = $allOptions->map(function ($option) use ($userOptions, $user) {
             $userOption = $userOptions->get($option->id);
-            
+
             return [
                 'id' => $option->id,
                 'key' => $option->key,
                 'name' => $option->name,
                 'description' => $option->description,
-                'value' => $userOption ? (bool) $userOption->pivot->value : false,
+                'value' => $userOption && (bool)$userOption->pivot->value,
             ];
         });
 
@@ -168,7 +167,9 @@ class ProfileController extends Controller
         }
 
         $user->options()->syncWithoutDetaching([
-            $option->id => ['value' => $request->value ? 1 : 0]
+            $option->id => [
+                'value' => $request->value ? 1 : 0
+            ]
         ]);
 
         $updatedOption = $user->options()->where('options.id', $option->id)->first();

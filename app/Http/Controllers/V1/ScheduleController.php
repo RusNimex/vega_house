@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\V1;
 
 use App\Contracts\Repositories\TaskRepositoryInterface;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\SchedulePayload;
 use App\Http\Resources\ScheduleResource;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
@@ -30,19 +30,15 @@ class ScheduleController extends Controller
      */
     public function index(SchedulePayload $request): JsonResponse
     {
-        $user = $request->user();
-        $perPage = $request->getPerPage();
-        $cursor = $request->getCursor();
-        $date = $request->getDate();
-
-        try {
-            $tasks = $this->taskRepository->getUserTasksWithCursorPagination($user, $date, $perPage, $cursor);
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch tasks', ['user_id' => $user->id, 'error' => $e]);
-            return response()->json(['error' => 'Failed to fetch tasks'], 500);
-        }
-
-        $contract = ScheduleResource::collection($tasks);
+        $contract = ScheduleResource::collection(
+            $this->taskRepository
+                ->getUserTasksWithCursorPagination(
+                    $request->user(),
+                    $request->getDate(),
+                    $request->getPerPage(),
+                    $request->getCursor()
+                )
+        );
 
         return $contract->response();
     }
