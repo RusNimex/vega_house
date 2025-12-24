@@ -2,47 +2,30 @@
 
 namespace Tests\Feature\Task;
 
-use App\Enums\SubtaskStatus;
 use App\Enums\TaskStatus;
-use App\Http\Requests\TaskPayload;
-use App\Models\Company;
 use App\Models\Contact;
-use App\Models\Task;
 use App\Models\TasksObject;
-use App\Models\TasksSubtask;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class TaskTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, TaskTestHelpers;
 
     /**
      * Тест: успешное получение задачи по ID
      */
     public function test_user_can_get_task_by_id(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
+        $task = $this->createTaskForCompany($company, [
             'status' => TaskStatus::NEW->value,
         ]);
 
         $contact = Contact::factory()->create(['task_id' => $task->id]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson("/api/v1/task/{$task->id}");
+        $response = $this->authenticatedJson($user, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -71,15 +54,9 @@ class TaskTest extends TestCase
      */
     public function test_get_task_returns_404_when_not_found(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/task/99999');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/task/99999');
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'Task not found']);
@@ -90,30 +67,12 @@ class TaskTest extends TestCase
      */
     public function test_user_cannot_get_task_from_other_company(): void
     {
-        $user1 = User::factory()->create([
-            'email' => 'user1@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user1, 'company' => $company1] = $this->createUserWithCompany(['email' => 'user1@example.com']);
+        ['user' => $user2, 'company' => $company2] = $this->createUserWithCompany(['email' => 'user2@example.com']);
 
-        $user2 = User::factory()->create([
-            'email' => 'user2@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $task = $this->createTaskForCompany($company2);
 
-        $company1 = Company::factory()->create();
-        $company2 = Company::factory()->create();
-
-        $user1->companies()->attach($company1->id, ['enabled' => true]);
-        $user2->companies()->attach($company2->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company2->id,
-        ]);
-
-        $token = $user1->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson("/api/v1/task/{$task->id}");
+        $response = $this->authenticatedJson($user1, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'Task not found']);
@@ -134,25 +93,14 @@ class TaskTest extends TestCase
      */
     public function test_task_includes_contacts(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
-        ]);
+        $task = $this->createTaskForCompany($company);
 
         $contact1 = Contact::factory()->create(['task_id' => $task->id]);
         $contact2 = Contact::factory()->create(['task_id' => $task->id]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson("/api/v1/task/{$task->id}");
+        $response = $this->authenticatedJson($user, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(200);
         $contacts = $response->json('data.contacts');
@@ -167,17 +115,9 @@ class TaskTest extends TestCase
      */
     public function test_task_includes_subtasks_statistics(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
-        ]);
+        $task = $this->createTaskForCompany($company);
 
         // Создаем подзадачи с разными статусами
         TasksObject::create([
@@ -198,10 +138,7 @@ class TaskTest extends TestCase
             'completed' => 0,
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson("/api/v1/task/{$task->id}");
+        $response = $this->authenticatedJson($user, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(200);
 
@@ -214,22 +151,11 @@ class TaskTest extends TestCase
      */
     public function test_task_subtasks_statistics_are_zero_when_no_subtasks(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
 
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
+        $task = $this->createTaskForCompany($company);
 
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
-        ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson("/api/v1/task/{$task->id}");
+        $response = $this->authenticatedJson($user, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(200);
 
@@ -242,23 +168,14 @@ class TaskTest extends TestCase
      */
     public function test_user_without_active_companies_cannot_get_task(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
-
-        $company = Company::factory()->create();
+        $user = $this->createUser();
+        $company = $this->createCompany();
         // Привязываем компанию, но с enabled = false
-        $user->companies()->attach($company->id, ['enabled' => false]);
+        $this->attachCompanyToUser($user, $company, false);
 
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
-        ]);
+        $task = $this->createTaskForCompany($company);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson("/api/v1/task/{$task->id}");
+        $response = $this->authenticatedJson($user, 'GET', "/api/v1/task/{$task->id}");
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'Task not found']);
@@ -269,24 +186,13 @@ class TaskTest extends TestCase
      */
     public function test_save_user_notes_for_task(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
+
+        $task = $this->createTaskForCompany($company);
+
+        $response = $this->authenticatedJson($user, 'PUT', "/api/v1/task/{$task->id}", [
+            'notes' => 'test_save_user_notes_for_task test_save_user_notes_for_task'
         ]);
-
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
-        ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson("/api/v1/task/{$task->id}", [
-                'notes' => 'test_save_user_notes_for_task test_save_user_notes_for_task'
-            ]);
 
         $response->assertStatus(200);
     }
@@ -296,24 +202,13 @@ class TaskTest extends TestCase
      */
     public function test_save_user_notes_fail_for_task(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
+        ['user' => $user, 'company' => $company] = $this->createUserWithCompany();
+
+        $task = $this->createTaskForCompany($company);
+
+        $response = $this->authenticatedJson($user, 'PUT', "/api/v1/task/{$task->id}", [
+            'notes' => '    '
         ]);
-
-        $company = Company::factory()->create();
-        $user->companies()->attach($company->id, ['enabled' => true]);
-
-        $task = Task::factory()->create([
-            'company_id' => $company->id,
-        ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson("/api/v1/task/{$task->id}", [
-                'notes' => '    '
-            ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors('notes');
