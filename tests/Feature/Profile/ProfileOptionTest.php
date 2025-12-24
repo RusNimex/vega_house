@@ -3,24 +3,20 @@
 namespace Tests\Feature\Profile;
 
 use App\Models\Option;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
+use Tests\Feature\Task\TaskTestHelpers;
 use Tests\TestCase;
 
 class ProfileOptionTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, TaskTestHelpers;
 
     /**
      * Тест успешного обновления опции по option_id
      */
     public function test_user_can_update_option_by_id(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option = Option::create([
             'key' => 'upload_if_wifi_online',
@@ -28,13 +24,10 @@ class ProfileOptionTest extends TestCase
             'description' => 'Загружать данные только при подключении к Wi-Fi сети',
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'option_id' => $option->id,
-                'value' => true,
-            ]);
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'option_id' => $option->id,
+            'value' => true,
+        ]);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -71,10 +64,7 @@ class ProfileOptionTest extends TestCase
      */
     public function test_user_can_update_option_by_key(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option = Option::create([
             'key' => 'save_photo_in_phone',
@@ -82,13 +72,10 @@ class ProfileOptionTest extends TestCase
             'description' => 'Сохранять фотографии в галерею телефона',
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'key' => 'save_photo_in_phone',
-                'value' => false,
-            ]);
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'key' => 'save_photo_in_phone',
+            'value' => false,
+        ]);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -110,10 +97,7 @@ class ProfileOptionTest extends TestCase
      */
     public function test_user_can_set_option_to_false(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option = Option::create([
             'key' => 'touch_id_face_id_enabled',
@@ -124,14 +108,11 @@ class ProfileOptionTest extends TestCase
         // Сначала устанавливаем значение true
         $user->options()->attach($option->id, ['value' => 1]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
         // Затем обновляем на false
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'option_id' => $option->id,
-                'value' => false,
-            ]);
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'option_id' => $option->id,
+            'value' => false,
+        ]);
 
         $response->assertStatus(200);
 
@@ -147,17 +128,11 @@ class ProfileOptionTest extends TestCase
      */
     public function test_update_option_requires_option_id_or_key(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
+        $user = $this->createUser();
+
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'value' => true,
         ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'value' => true,
-            ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['option_id', 'key']);
@@ -168,22 +143,16 @@ class ProfileOptionTest extends TestCase
      */
     public function test_update_option_requires_value(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option = Option::create([
             'key' => 'upload_if_wifi_online',
             'name' => 'Загружать только при Wi-Fi',
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'option_id' => $option->id,
-            ]);
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'option_id' => $option->id,
+        ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['value']);
@@ -194,18 +163,12 @@ class ProfileOptionTest extends TestCase
      */
     public function test_update_option_fails_with_nonexistent_option_id(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
+        $user = $this->createUser();
+
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'option_id' => 99999,
+            'value' => true,
         ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'option_id' => 99999,
-                'value' => true,
-            ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['option_id']);
@@ -216,18 +179,12 @@ class ProfileOptionTest extends TestCase
      */
     public function test_update_option_fails_with_nonexistent_key(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
+        $user = $this->createUser();
+
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'key' => 'nonexistent_key',
+            'value' => true,
         ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'key' => 'nonexistent_key',
-                'value' => true,
-            ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['key']);
@@ -256,17 +213,12 @@ class ProfileOptionTest extends TestCase
      */
     public function test_update_option_creates_relation_if_not_exists(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option = Option::create([
             'key' => 'upload_if_wifi_online',
             'name' => 'Загружать только при Wi-Fi',
         ]);
-
-        $token = $user->createToken('test-token')->plainTextToken;
 
         // Проверяем, что связи нет
         $this->assertDatabaseMissing('user_options', [
@@ -274,11 +226,10 @@ class ProfileOptionTest extends TestCase
             'option_id' => $option->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->putJson('/api/v1/profile/options', [
-                'option_id' => $option->id,
-                'value' => true,
-            ]);
+        $response = $this->authenticatedJson($user, 'PUT', '/api/v1/profile/options', [
+            'option_id' => $option->id,
+            'value' => true,
+        ]);
 
         $response->assertStatus(200);
 
@@ -295,10 +246,7 @@ class ProfileOptionTest extends TestCase
      */
     public function test_user_can_get_all_options_with_default_values(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option1 = Option::create([
             'key' => 'upload_if_wifi_online',
@@ -312,10 +260,7 @@ class ProfileOptionTest extends TestCase
             'description' => 'Сохранять фотографии в галерею телефона',
         ]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/profile/options');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/profile/options');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -353,10 +298,7 @@ class ProfileOptionTest extends TestCase
      */
     public function test_user_can_get_options_with_set_values(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option1 = Option::create([
             'key' => 'upload_if_wifi_online',
@@ -381,10 +323,7 @@ class ProfileOptionTest extends TestCase
         $user->options()->attach($option2->id, ['value' => 0]);
         // option3 не устанавливаем
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/profile/options');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/profile/options');
 
         $response->assertStatus(200)
             ->assertJsonCount(3, 'options')
@@ -429,15 +368,9 @@ class ProfileOptionTest extends TestCase
      */
     public function test_user_can_get_empty_options_list(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/profile/options');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/profile/options');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -451,10 +384,7 @@ class ProfileOptionTest extends TestCase
      */
     public function test_get_options_returns_correct_structure(): void
     {
-        $user = User::factory()->create([
-            'email' => 'user@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        $user = $this->createUser();
 
         $option = Option::create([
             'key' => 'upload_if_wifi_online',
@@ -464,10 +394,7 @@ class ProfileOptionTest extends TestCase
 
         $user->options()->attach($option->id, ['value' => 1]);
 
-        $token = $user->createToken('test-token')->plainTextToken;
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/v1/profile/options');
+        $response = $this->authenticatedJson($user, 'GET', '/api/v1/profile/options');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
