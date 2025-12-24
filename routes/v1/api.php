@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Controllers\V1\CompanyController;
 use App\Http\Controllers\V1\ProfileController;
+use App\Http\Controllers\V1\ScheduleController;
 use App\Http\Controllers\V1\TaskController;
 use App\Http\Middleware\DeprecationWarning;
 use Illuminate\Support\Facades\Route;
